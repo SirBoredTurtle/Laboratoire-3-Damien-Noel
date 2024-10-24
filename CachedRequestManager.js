@@ -26,7 +26,7 @@ export class CachedRequestsManager {
                 ETag,
                 Expire_Time: utilities.nowInSeconds() + repositoryCachesExpirationTime
             });
-            console.log(`[Content for URL ${url} has been cached]`);
+            console.log(`BgWhite + FgBlue, [Content for URL ${url} has been cached]`);
         }
     }
     static find(url) {
