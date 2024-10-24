@@ -1,7 +1,7 @@
 import * as utilities from "./utilities.js";
 import * as serverVariables from "./serverVariables.js";
 
-let repositoryCachesExpirationTime = serverVariables.get("main.repository.CacheExpirationTime");
+let CachedRequestsExpirationTime = serverVariables.get("main.repository.CacheExpirationTime");
 
 globalThis.CachedRequests = [];
 global.startCachedRequestsCleanerStarted = false;
@@ -9,13 +9,13 @@ global.startCachedRequestsCleanerStarted = false;
 export class CachedRequestsManager {
 
     static startCachedRequestsCleaner() {
-        setInterval(CachedRequestsManager.flushExpired, repositoryCachesExpirationTime * 1000);
-        console.log(BgWhite + FgBlue, "[Periodic URL content cache cleaning process started...]");
+        setInterval(CachedRequestsManager.flushExpired, CachedRequestsExpirationTime * 1000);
+        console.log(BgBlue + FgWhite, "[Periodic URL content cache cleaning process started...]");
     }
     static add(url, content, ETag = "") {
-        if(this.startCachedRequestsCleanerStarted == false )
+        if(startCachedRequestsCleanerStarted == false )
         {
-            startCachedRequestsCleaner();
+            CachedRequestsManager.startCachedRequestsCleaner();
             startCachedRequestsCleanerStarted = true;
         }
         if (url != "") {
@@ -24,9 +24,9 @@ export class CachedRequestsManager {
                 url,
                 content,
                 ETag,
-                Expire_Time: utilities.nowInSeconds() + repositoryCachesExpirationTime
+                Expire_Time: utilities.nowInSeconds() + CachedRequestsExpirationTime
             });
-            console.log(`BgWhite + FgBlue, [Content for URL ${url} has been cached]`);
+            console.log(BgBlue + FgWhite,`[Content for URL ${url} has been cached]`);
         }
     }
     static find(url) {
@@ -34,14 +34,14 @@ export class CachedRequestsManager {
             if (url != "") {
                 for (let cache of CachedRequests) {
                     if (cache.url == url) {
-                        cache.Expire_Time = utilities.nowInSeconds() + repositoryCachesExpirationTime;
-                        console.log(BgWhite + FgBlue, `[Content for URL ${cache.url} retrieved from cache]`);
-                        return cache.data;                    
+                        cache.Expire_Time = utilities.nowInSeconds() + CachedRequestsExpirationTime;
+                        console.log(BgBlue + FgWhite, `[Content for URL ${cache.url} retrieved from cache]`);
+                        return cache;                    
                     }
                 }
             }
         } catch (error) {
-            console.log(BgWhite+FgRed,"[URL cache error!]", error);
+            console.log(BgBlue+FgRed,"[URL cache error!]", error);
         }
         return null;
     }
@@ -58,29 +58,21 @@ export class CachedRequestsManager {
         }
     }
     static flushExpired() {
-        let indexToDelete = [];
-        let index = 0;
         let now = utilities.nowInSeconds();
         for (let cache of CachedRequests) {
-            if (cache.Expire_Time < now) {
-                console.log(BgWhite + FgBlue, `[Cached content for URL ${cache.url} expired]`);
-                indexToDelete.push(index);
+            if (cache.Expire_Time <= now) {
+                console.log(BgBlue + FgBlue, "Cached file data of " + cache.url + " expired");
             }
-            index++;
         }
-        utilities.deleteByIndex(CachedRequests, indexToDelete);
+        CachedRequests = CachedRequests.filter( cache => cache.Expire_Time > now);
     }
-    static get(HttpContext) {
-        const url = HttpContext.req.url;
-        const ETag = HttpContext.response.ETag
-        const content = HttpContext.payload;
+    static get(HttpContext){
         let Data = CachedRequestsManager.find(HttpContext.req.url)
         if (Data != null){
-            HttpContext.response.JSON(Data.content, Data.Etag, true)
+           // HttpContext.response.JSON(Data.content, Data.Etag, true)
         }
-        else
-        {
-            CachedRequestsManager.add(url,content,ETag, false)
+        else{
+            CachedRequestsManager.add(HttpContext.req.url,HttpContext.payload,HttpContext.req.ETag);
         }
     }
 }

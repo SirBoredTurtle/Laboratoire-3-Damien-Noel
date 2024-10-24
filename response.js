@@ -5,7 +5,7 @@
 // Lionel-Groulx College
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 import { log } from "./log.js";
-
+import { CachedRequestsManager } from "./CachedRequestManager.js";
 export default class Response {
     constructor(HttpContext) {
         this.HttpContext = HttpContext;
@@ -40,7 +40,14 @@ export default class Response {
         this.res.writeHead(204, { 'ETag': ETag });
         this.end();
     }
-    JSON(obj, ETag = "") {                         // ok status with content
+    JSON(obj, ETag = "", fromCache = false) {// ok status with content
+        if (!fromCache){
+            if (this.HttpContext.isCacheable){
+                let url = this.HttpContext.req.url;
+                let payload = this.HttpContext.payload;
+                CachedRequestsManager.add(url,payload,ETag)
+            }
+        }
         if (ETag != "")
             this.res.writeHead(200, { 'content-type': 'application/json', 'ETag': ETag });
         else
