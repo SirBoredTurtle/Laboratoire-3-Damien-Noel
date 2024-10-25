@@ -43,7 +43,7 @@ export class CachedRequestsManager {
         } catch (error) {
             console.log(BgBlue+FgRed,"[URL cache error!]", error);
         }
-        return null;
+        return "";
     }
 
     static clear(url) {
@@ -68,7 +68,7 @@ export class CachedRequestsManager {
     }
     static get(HttpContext){
         let Data = CachedRequestsManager.find(HttpContext.req.url)
-        if (Data != null){
+        if (Data != ""){
             HttpContext.response.JSON(Data.content, Data.Etag, true)
         }
         else{
