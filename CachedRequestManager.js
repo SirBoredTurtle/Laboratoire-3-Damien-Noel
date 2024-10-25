@@ -36,7 +36,7 @@ export class CachedRequestsManager {
                     if (cache.url == url) {
                         cache.Expire_Time = utilities.nowInSeconds() + CachedRequestsExpirationTime;
                         console.log(BgBlue + FgWhite, `[Content for URL ${cache.url} retrieved from cache]`);
-                        return cache;                    
+                        return Data;                    
                     }
                 }
             }
@@ -69,7 +69,7 @@ export class CachedRequestsManager {
     static get(HttpContext){
         let Data = CachedRequestsManager.find(HttpContext.req.url)
         if (Data != null){
-           // HttpContext.response.JSON(Data.content, Data.Etag, true)
+            HttpContext.response.JSON(Data.content, Data.Etag, true)
         }
         else{
             CachedRequestsManager.add(HttpContext.req.url,HttpContext.payload,HttpContext.req.ETag);
