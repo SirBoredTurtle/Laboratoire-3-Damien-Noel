@@ -67,9 +67,9 @@ export class CachedRequestsManager {
         CachedRequests = CachedRequests.filter( cache => cache.Expire_Time > now);
     }
     static get(HttpContext){
-        let Data = CachedRequestsManager.find(HttpContext.req.url)
-        if (Data != null){
-            HttpContext.response.JSON(Data.content, Data.Etag, true)
+        let content = CachedRequestsManager.find(HttpContext.req.url)
+        if (content != null){
+            HttpContext.response.JSON(content.content, content.Etag, true)
         }
         else{
             CachedRequestsManager.add(HttpContext.req.url,HttpContext.payload,HttpContext.req.ETag);
