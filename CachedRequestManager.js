@@ -36,14 +36,14 @@ export class CachedRequestsManager {
                     if (cache.url == url) {
                         cache.Expire_Time = utilities.nowInSeconds() + CachedRequestsExpirationTime;
                         console.log(BgBlue + FgWhite, `[Content for URL ${cache.url} retrieved from cache]`);
-                        return Data;                    
+                        return cache.Data;                    
                     }
                 }
             }
         } catch (error) {
             console.log(BgBlue+FgRed,"[URL cache error!]", error);
         }
-        return "";
+        return null;
     }
 
     static clear(url) {
@@ -68,7 +68,7 @@ export class CachedRequestsManager {
     }
     static get(HttpContext){
         let Data = CachedRequestsManager.find(HttpContext.req.url)
-        if (Data != ""){
+        if (Data != null){
             HttpContext.response.JSON(Data.content, Data.Etag, true)
         }
         else{
